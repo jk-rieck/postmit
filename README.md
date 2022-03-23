@@ -30,4 +30,4 @@ pip install -e .
 
 ## Usage
 
-See the example notebooks:
+See the [__example notebook__](https://github.com/jk-rieck/postmit/blob/main/examples/example.ipynb).
