@@ -47,6 +47,15 @@ def check_z_distances(ds):
             ds['drS'] = ds.hFacS * ds.drF #vertical cell size at v point
             ds['drC'] = ds.hFacC * ds.drF #vertical cell size at tracer point
             ds = ds.set_coords(["drW", "drS", "drC"])
+            ds["drW"].attrs = {"standard_name": "cell_z_size_at_u_location",
+                               "long_name": "cell z size",
+                               "unit": "m"}
+            ds["drS"].attrs = {"standard_name": "cell_z_size_at_v_location",
+                               "long_name": "cell z size",
+                               "unit": "m"}
+            ds["drC"].attrs = {"standard_name": "cell_z_size_at_t_location",
+                               "long_name": "cell z size",
+                               "unit": "m"}
     else:
         raise ValueError("no information on z distances found in Dataset")
     return ds
@@ -100,7 +109,7 @@ def check_layers(ds, path_to_input):
     ds : xarray.Dataset
         Checked xarray Dataset.
     """
-    if glob.glob(path + 'data.layers'):
+    if glob.glob(path_to_input + 'data.layers'):
         if '_UNKNOWN_' in ds.dims:
             ds = ds.rename({'_UNKNOWN_': 'layer_center'})
             isopycnal_bounds = get_isopycnals(path_to_input)
@@ -108,6 +117,8 @@ def check_layers(ds, path_to_input):
                                  + (isopycnal_bounds[1::]
                                     - isopycnal_bounds[0:-1]) / 2)
             ds["layer_center"] = isopycnal_centers
+            ds["layer_center"].attrs = {"long_name":
+                                        "center of layers from Layers package"}
         ds = ds.chunk({'layer_center': -1})
     else: # if data.layers is not present, Layers package was prob. not used
         ds = ds
