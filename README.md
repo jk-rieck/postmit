@@ -9,8 +9,8 @@ The package works based on output contained in [`xarray`](https://docs.xarray.de
 
 ~~~bash
 # clone the git repository
-git clone ??
-cd eddytools
+git clone git@github.com:jk-rieck/postmit.git
+cd postmit
 # create and activate the environment
 conda env create -f environment.yml
 conda activate py3_postmit
@@ -21,11 +21,11 @@ pip install -e .
 
 ## Install in existing environment
 
-1. Make sure you have ?? installed.
+1. Make sure you have `numpy`, `xarray`, `xgcm`, `gsw` and `MITgcmutils` installed.
 
 2. Install from the repository using
   ~~~bash
-  pip install git+
+  pip install git+https://github.com/jk-rieck/postmit.git@main
   ~~~
 
 ## Usage
