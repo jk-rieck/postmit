@@ -1,12 +1,16 @@
 """checks
 
-Collection of functions that perform checks on the provided model output to verify that all required variables are present and, if not, try to construct them and add them to the dataset.
+Collection of functions that perform checks on the provided model output to
+verify that all required variables are present and, if not, try to construct
+them and add them to the dataset.
 """
 import glob
 import numpy as np
 
 def fix_c_grid_axis_shift(ds):
-    """Fix for when the attribute 'c_grid_axis_shift' is stored as a list rather than a float, which can occur when loading data with xmitgcm and then storing it as netcdf files.
+    """Fix for when the attribute 'c_grid_axis_shift' is stored as a list
+    rather than a float, which can occur when loading data with xmitgcm and
+    then storing it as netcdf files.
 
     Parameters
     ----------
@@ -27,7 +31,8 @@ def fix_c_grid_axis_shift(ds):
 
 
 def check_z_distances(ds):
-    """Check whether all z distances needed for xgcm are present in Dataset and try to construct the required metrics if they are not present.
+    """Check whether all z distances needed for xgcm are present in Dataset and
+    try to construct the required metrics if they are not present.
 
     Parameters
     ----------
@@ -95,7 +100,11 @@ def get_isopycnals(path_to_input):
 
 
 def check_layers(ds, path_to_input):
-    """If the model simulation used the Layers package, this function can be used to check whether the layer-coordinate (called `_UNKNOWN_` by default when loading the data with `xmitgcm`) is present and if so, it will be renamed to `layer_center` and populated with the layer centers derived from the `data.layers` file.
+    """If the model simulation used the Layers package, this function can be
+    used to check whether the layer-coordinate (called `_UNKNOWN_` by default
+    when loading the data with `xmitgcm`) is present and if so, it will be
+    renamed to `layer_center` and populated with the layer centers derived from
+    the `data.layers` file.
 
     Parameters
     ----------
