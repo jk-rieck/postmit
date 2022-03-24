@@ -316,9 +316,9 @@ def w_ekman(ds, grid=None, path_to_input=None,
         tauy = grid.interp(ds[tauy_name], "Y")
     ds[out_name] = ((1 / ds.rhoconst)
                     * grid.derivative(tauy, "X")
-                       / ds.fU + ds["VORT"].isel(Z=0))
+                       / ds.fU + ds["VORT"].isel(Z=0)
                        - grid.derivative(taux, "Y")
-                       / ds.fU + ds["VORT"].isel(Z=0)))
+                       / ds.fU + ds["VORT"].isel(Z=0))
     return ds
 
 
