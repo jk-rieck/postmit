@@ -46,8 +46,8 @@ def add_lat_lon(ds, latmin, latmax, lonmin, lonmax):
                                   len(ds.YC))[:, None],
                       len(ds.XC), axis=1))
         ds["latC"] = (("YG", "XC"),
-            np.repeat(np.linspace(latmin,
-                                  latmax - dyG,
+            np.repeat(np.linspace(latmin + dyG,
+                                  latmax,
                                   len(ds.YG))[:, None],
                       len(ds.XC), axis=1))
         ds["latG"] = (("YC", "XG"),
@@ -56,8 +56,8 @@ def add_lat_lon(ds, latmin, latmax, lonmin, lonmax):
                                   len(ds.YC))[:, None],
                       len(ds.XG), axis=1))
         ds["latU"] = (("YG", "XG"),
-            np.repeat(np.linspace(latmin,
-                                  latmax - dyG,
+            np.repeat(np.linspace(latmin + dyG,
+                                  latmax,
                                   len(ds.YG))[:, None],
                       len(ds.XG), axis=1))
     if lonmin == lonmax:
@@ -79,13 +79,13 @@ def add_lat_lon(ds, latmin, latmax, lonmin, lonmax):
                                   len(ds.XC))[None, :],
                       len(ds.YG), axis=0))
         ds["lonG"] = (("YC", "XG"),
-            np.repeat(np.linspace(lonmin,
-                                  lonmax - dxG,
+            np.repeat(np.linspace(lonmin + dxG,
+                                  lonmax,
                                   len(ds.XG))[None, :],
                       len(ds.YC), axis=0))
         ds["lonU"] = (("YG", "XG"),
-            np.repeat(np.linspace(lonmin,
-                                  lonmax - dxG,
+            np.repeat(np.linspace(lonmin + dxG,
+                                  lonmax,
                                   len(ds.XG))[:, None],
                       len(ds.YG), axis=1))
     return ds
