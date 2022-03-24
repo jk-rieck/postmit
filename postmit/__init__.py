@@ -5,3 +5,5 @@ Python package to do some post-processing on model ouput from the MITgcm (https:
 
 from . import checks
 from . import adds
+from . import calcs
+from . import convert
