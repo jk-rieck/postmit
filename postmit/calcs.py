@@ -145,14 +145,14 @@ def get_const(ds, path_to_input):
             while data[line][1:16] != 'HeatCapacity_Cp':
                 line += 1
                 continue
-            HeatCapacity_Cp =
+            HeatCapacity_Cp =\
                 float(data[line].strip().split('=')[1].split(',')[0])
         except:
             HeatCapacity_Cp = 3994.
         ds["HeatCapacity_Cp"] = HeatCapacity_Cp
         #
         # ups (conversion factor from Sstart to SA)
-        ds["ups"] = (35.16504 / 35
+        ds["ups"] = (35.16504 / 35)
         #
         # f0
         line = 0
@@ -202,7 +202,7 @@ def buoy(ds, path_to_input=None, densvar="RHOAnoma"):
     """
     if (("gravity" not in ds) | ("rhoconst" not in ds)):
         ds = get_const(ds, path_to_input)
-    ds["BUOY"] = ((-ds["gravity"] / ds["rhoconst"]) * (ds.[densvar]))
+    ds["BUOY"] = ((-ds["gravity"] / ds["rhoconst"]) * (ds[densvar]))
     ds["BUOY"].attrs["units"] = 'm/s^2'
     return ds
 

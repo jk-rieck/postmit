@@ -156,4 +156,4 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         ds_1d = apply_all_checks(ds_1d, path)
         print('    -- writing 1d-output to zarr')
         ds_1d.to_zarr(out_path + ds_out + '/', mode='w')
-return str("data saved to ") + str(out_path)
+    return str("data saved to ") + str(out_path)
