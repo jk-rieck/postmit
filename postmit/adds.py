@@ -30,14 +30,19 @@ def add_lat_lon(ds, latmin, latmax, lonmin, lonmax):
     Returns
     -------
     ds : xarray.Dataset
-        Xarray dataset with `lat` and `lon` added as variables.
+        Xarray dataset with added latitude and longitude variables.
     """
     if latmin == latmax:
+        # if only one latitude is given, we construct 2D arrays containing this
+        # latitude everywhere
         ds["latF"] = (("YC", "XC"), np.zeros((len(ds.YC), len(ds.XC))) + latmin)
         ds["latC"] = (("YG", "XC"), np.zeros((len(ds.YG), len(ds.XC))) + latmin)
         ds["latG"] = (("YC", "XG"), np.zeros((len(ds.YC), len(ds.XG))) + latmin)
         ds["latU"] = (("YG", "XG"), np.zeros((len(ds.YG), len(ds.XG))) + latmin)
     else:
+        # compute the latitudes for each grid point given latmin and latmax and
+        # the number of grid points (`len(ds.YC)`). Also make sure that each
+        # grid point (t, u, v, f) gets the correct latitudes.
         dyC = (latmax - latmin) / len(ds.YC)
         dyG = (latmax - latmin) / len(ds.YG)
         ds["latF"] = (("YC", "XC"),
@@ -61,11 +66,16 @@ def add_lat_lon(ds, latmin, latmax, lonmin, lonmax):
                                   len(ds.YG))[:, None],
                       len(ds.XG), axis=1))
     if lonmin == lonmax:
+        # if only one longitude is given, we construct 2D arrays containing this
+        # longitude everywhere
         ds["lonF"] = (("YC", "XC"), np.zeros((len(ds.YC), len(ds.XC))) + lonmin)
         ds["lonC"] = (("YG", "XC"), np.zeros((len(ds.YG), len(ds.XC))) + lonmin)
         ds["lonG"] = (("YC", "XG"), np.zeros((len(ds.YC), len(ds.XG))) + lonmin)
         ds["lonU"] = (("YG", "XG"), np.zeros((len(ds.YG), len(ds.XG))) + lonmin)
     else:
+        # compute the longitudes for each grid point given lonmin and lonmax and
+        # the number of grid points (`len(ds.XC)`). Also make sure that each
+        # grid point (t, u, v, f) gets the correct longitudes.
         dxC = (lonmax - lonmin) / len(ds.XC)
         dxG = (lonmax - lonmin) / len(ds.XG)
         ds["lonF"] = (("YC", "XC"),
