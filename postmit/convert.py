@@ -16,16 +16,16 @@ def load_data(path, grid_dir, prefix, start, end, step, dt,
     """
     if tout == '1y':
         ref_date = '0000-07-01 00:00:00'
-        time_chunk = 100
+        time_chunk = 20
     elif tout == '1m':
         ref_date = '0000-12-15 00:00:00'
-        time_chunk = 120
+        time_chunk = 24
     elif tout == '5d':
         ref_date = '0000-12-28 12:00:00'
-        time_chunk = 144
+        time_chunk = 36
     elif tout == '1d':
         ref_date = '0000-12-30 12:00:00'
-        time_chunk = 180
+        time_chunk = 30
     ds = xmit.open_mdsdataset(
         path, iters=list(np.arange(start, end + 1, step)), delta_t=dt,
         ignore_unknown_vars=True, grid_dir=grid_dir, ref_date=ref_date,
@@ -125,7 +125,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1y-data')
         ds_1y = apply_all_checks(ds_1y, path)
         print('    -- writing 1y-output to zarr')
-        ds_1y.to_zarr(out_path + ds_out + '/', mode='w')
+        ds_1y.to_zarr(out_path + ds_out + '1y.zarr/',
+                      mode='w', safe_chunks=True)
+        del ds_1y
     if has_1m:
         print('    -- loading 1m-output from binary')
         ds_1m = xr.merge([load_data(path, grid_path, p, start, end, step,
@@ -135,7 +137,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1m-data')
         ds_1m = apply_all_checks(ds_1m, path)
         print('    -- writing 1m-output to zarr')
-        ds_1m.to_zarr(out_path + ds_out + '/', mode='w')
+        ds_1m.to_zarr(out_path + ds_out + '1m.zarr/',
+                      mode='w', safe_chunks=True)
+        del ds_1m
     if has_5d:
         print('    -- loading 5d-output from binary')
         ds_5d = xr.merge([load_data(path, grid_path, p, start, end, step,
@@ -145,7 +149,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         print('    -- running checks on 5d-data')
         ds_5d = apply_all_checks(ds_5d, path)
         print('    -- writing 5d-output to zarr')
-        ds_5d.to_zarr(out_path + ds_out + '/', mode='w')
+        ds_5d.to_zarr(out_path + ds_out + '5d.zarr/',
+                      mode='w', safe_chunks=True))
+        del ds_5d
     if has_1d:
         print('    -- loading 1d-output from binary')
         ds_1d = xr.merge([load_data(path, grid_path, p, start, end, step,
@@ -155,5 +161,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1d-data')
         ds_1d = apply_all_checks(ds_1d, path)
         print('    -- writing 1d-output to zarr')
-        ds_1d.to_zarr(out_path + ds_out + '/', mode='w')
+        ds_1d.to_zarr(out_path + ds_out + '1d.zarr/', 
+                      mode='w', safe_chunks=True)
+        del ds_1d
     return str("data saved to ") + str(out_path)
