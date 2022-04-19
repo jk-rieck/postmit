@@ -150,7 +150,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         ds_5d = apply_all_checks(ds_5d, path)
         print('    -- writing 5d-output to zarr')
         ds_5d.to_zarr(out_path + ds_out + '5d.zarr/',
-                      mode='w', safe_chunks=True))
+                      mode='w', safe_chunks=True)
         del ds_5d
     if has_1d:
         print('    -- loading 1d-output from binary')
@@ -161,7 +161,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1d-data')
         ds_1d = apply_all_checks(ds_1d, path)
         print('    -- writing 1d-output to zarr')
-        ds_1d.to_zarr(out_path + ds_out + '1d.zarr/', 
+        ds_1d.to_zarr(out_path + ds_out + '1d.zarr/',
                       mode='w', safe_chunks=True)
         del ds_1d
     return str("data saved to ") + str(out_path)
