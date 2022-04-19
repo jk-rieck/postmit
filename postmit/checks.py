@@ -110,7 +110,9 @@ def get_isopycnals(path_to_input):
         isos = np.array([float(i) for i in data_layers[linestart].split('=')[1].split('\n')[0].split(',')[0:-1]])
         for j in range(linestart+1, lineend):
             isos = np.hstack((isos,
-                              np.array([float(i) for i in data_layers[j].strip().split('\n')[0].split(',')[0::]])))
+                              np.array([float(i) for i in data_layers[j].strip().split('\n')[0].split(',')[0:-1]])))
+        isos = np.hstack((isos,
+                          np.array([float(i) for i in data_layers[lineend].strip().split('\n')[0].split(',')[:]])))
         return isos
 
 
