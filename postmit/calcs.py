@@ -61,7 +61,7 @@ def transports(ds, grid=None):
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
         (ds.UVEL - ds.UVELbot).where(ds.hFacW > 0), "Y"), "Z").mean("XG")
     ds["VTRANSbaro"] = grid.integrate(grid.integrate(
-        (ds.VVEL - ds.VVELbot).where(ds.hFacW > 0), "X"), "Z").mean("YG")
+        (ds.VVEL - ds.VVELbot).where(ds.hFacS > 0), "X"), "Z").mean("YG")
     ds["UTRANS"].attrs["standard_name"] = "UTRANS"
     ds["UTRANS"].attrs["long_name"] =\
         "mean zonal transport integrated over Y and Z (m^3/s)"
