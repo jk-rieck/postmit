@@ -140,6 +140,7 @@ def total_MOC(ds, grid=None):
 def residual_MOC(ds, grid=None, path_to_input=None):
     """
     """
+    dw = ds.copy()
     if grid == None:
         metrics = {
             ('X'): ['dxC', 'dxG', 'dxF', 'dxV'], # X distances
@@ -147,16 +148,16 @@ def residual_MOC(ds, grid=None, path_to_input=None):
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(dw, periodic=["X", "Y"], metrics=metrics)
     if "layer_center" not in ds.dims:
-        ds = checks.check_layers(ds, path_to_input)
-    ds["MOC_res"] = grid.integrate(
-        ds.LaVH1RHO.sortby("layer_center",
+        dw = checks.check_layers(dw, path_to_input)
+    dw["MOC_res"] = grid.integrate(
+        dw.LaVH1RHO.sortby("layer_center",
         ascending=True).cumsum(dim="layer_center"), "X")
-    ds["layer_depths"] = -ds.LaHs1RHO.sortby(
+    dw["layer_depths"] = -dw.LaHs1RHO.sortby(
         "layer_center", ascending=True).cumsum(dim="layer_center").mean("XC")
-    tmp = xr.merge([ds.MOC_res, ds.layer_depths, ds.LaHs1RHO])
-    tmp = tmp.assign_coords(ds.coords).drop_dims(["Z", "Zp1", "Zl", "Zu"])
+    tmp = xr.merge([dw.MOC_res, dw.layer_depths, dw.LaHs1RHO])
+    tmp = tmp.assign_coords(dw.coords).drop_dims(["Z", "Zp1", "Zl", "Zu"])
     tmp["layer_center"].attrs["axis"] = "Z"
     tmp["layer_bounds"] = checks.get_isopycnals(path_to_input)
     tmp["layer_bounds"].attrs["axis"] = "Z"
@@ -167,23 +168,26 @@ def residual_MOC(ds, grid=None, path_to_input=None):
         ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
         }
     grid2 = xgcm.Grid(tmp, periodic=["Y"], metrics=metrics_tmp)
-    ds["MOC_res_z"] = grid2.transform(tmp.MOC_res, "Z", ds.Z,
+    dw["MOC_res_z"] = grid2.transform(tmp.MOC_res, "Z", dw.Z,
                                       target_data=tmp.layer_depths)
-    ds["MOC_res_z"] = ds["MOC_res_z"].transpose("time", "Z", "YG")
-    ds["MOC_res"].attrs["standard_name"] = "residual_overturning"
-    ds["MOC_res"].attrs["long_name"] = "residual overturning (m^3/s)"
-    ds["MOC_res"].attrs["units"] = "m^3/s"
-    ds["MOC_res_z"].attrs["standard_name"] =\
+    dw["MOC_res_z"] = dw["MOC_res_z"].transpose("time", "Z", "YG")
+    dw["time"].attrs = ds["time"].attrs
+    dw["Z"].attrs = ds["Z"].attrs
+    dw["YG"].attrs = ds["YG"].attrs
+    dw["MOC_res"].attrs["standard_name"] = "residual_overturning"
+    dw["MOC_res"].attrs["long_name"] = "residual overturning (m^3/s)"
+    dw["MOC_res"].attrs["units"] = "m^3/s"
+    dw["MOC_res_z"].attrs["standard_name"] =\
         "residual_overturning_on_z_levels"
-    ds["MOC_res_z"].attrs["long_name"] =\
+    dw["MOC_res_z"].attrs["long_name"] =\
         "residual overturning on depth levels (m^3/s)"
-    ds["MOC_res_z"].attrs["units"] = "m^3/s"
-    ds["layer_depths"].attrs["standard_name"] =\
+    dw["MOC_res_z"].attrs["units"] = "m^3/s"
+    dw["layer_depths"].attrs["standard_name"] =\
         "layer_depths_of_isopycnal_layers"
-    ds["layer_depths"].attrs["long_name"] =\
+    dw["layer_depths"].attrs["long_name"] =\
         "layer depths of isopycnal layers from LaVH1RHO"
-    ds["layer_depths"].attrs["units"] = "m"
-    return ds
+    dw["layer_depths"].attrs["units"] = "m"
+    return dw
 
 
 def get_const(ds, path_to_input):
