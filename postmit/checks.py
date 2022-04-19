@@ -111,8 +111,6 @@ def get_isopycnals(path_to_input):
         for j in range(linestart+1, lineend):
             isos = np.hstack((isos,
                               np.array([float(i) for i in data_layers[j].strip().split('\n')[0].split(',')[0:-1]])))
-        isos = np.hstack((isos,
-                          np.array([float(i) for i in data_layers[lineend].strip().split('\n')[0].split(',')[:]])))
         return isos
 
 
