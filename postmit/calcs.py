@@ -8,6 +8,8 @@ import gsw
 import xarray as xr
 from MITgcmutils import jmd95 as jmd
 from . import checks
+from . import adds
+import glob
 
 def vort(ds, grid=None):
     """
@@ -94,7 +96,7 @@ def sig0(ds):
     """
     ds["SIG0"] = xr.apply_ufunc(jmd.dens, ds.SALT, ds.THETA, 0,
                                 dask='parallelized',
-                                output_dtypes=[ds.THETA.dtype])
+                                output_dtypes=[ds.THETA.dtype], keep_attrs=True)
     ds["SIG0"].attrs["standard_name"] = "SIG0"
     ds["SIG0"].attrs["long_name"] =\
         "potential density referenced to the surface (0 dbar) (kg/m^3)"
@@ -111,7 +113,7 @@ def sigi(ds, p):
     name = "SIG" + str(p)
     ds[name] = xr.apply_ufunc(jmd.dens, ds.SALT, ds.THETA, press,
                               dask='parallelized',
-                              output_dtypes=[ds.THETA.dtype])
+                              output_dtypes=[ds.THETA.dtype], keep_attrs=True)
     ds[name].attrs["standard_name"] = name
     ds[name].attrs["long_name"] =\
         "potential density referenced to " + str(p * 1000) + " dbar (kg/m^3)"
@@ -130,7 +132,7 @@ def total_MOC(ds, grid=None):
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
         grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
-    ds["MOC"] = grid.integrate((ds.VVEL * ds.drC).cumsum(dim="Z"), "X")
+    ds["MOC"] = grid.integrate((ds.VVEL * ds.drS).cumsum(dim="Z"), "X")
     ds["MOC"].attrs["standard_name"] = "meridional_overturning"
     ds["MOC"].attrs["long_name"] = "meridional overturning (m^3/s)"
     ds["MOC"].attrs["units"] = "m^3/s"
@@ -342,7 +344,7 @@ def press(ds, path_to_input=None):
     """
     if "rhonil" not in ds:
         ds = get_const(ds, path_to_input)
-    ds["PRESS"] = (ds.PHIHYD + ds.PHrefC) * rhonil * 0.0001
+    ds["PRESS"] = (ds.PHIHYD + ds.PHrefC) * ds.rhonil * 0.0001
     ds["PRESS"].attrs["standard_name"] = "PRESS"
     ds["PRESS"].attrs["long_name"] = "pressure (dbar)"
     ds["PRESS"].attrs["units"] = 'dbar'
@@ -356,7 +358,7 @@ def dens(ds, path_to_input=None):
         ds = press(ds, path_to_input)
     ds["DENS"] = xr.apply_ufunc(jmd.dens, ds.SALT, ds.THETA, ds.PRESS,
                                 dask='parallelized',
-                                output_dtypes=[ds.THETA.dtype])
+                                output_dtypes=[ds.THETA.dtype], keep_attrs=True)
     ds["DENS"].attrs["standard_name"] = "DENS"
     ds["DENS"].attrs["long_name"] = "in-situ density (kg/m^3)"
     ds["DENS"].attrs["units"] = 'kg/m^3'
@@ -369,11 +371,13 @@ def SA(ds, path_to_input=None,
     if "ups" not in ds:
         ds = get_const(ds, path_to_input)
     if (("latF" not in ds) | ("lonF" not in ds)):
-        ds = add_lat_lon(ds, latmin, latmax, lonmin, lonmax)
+        ds = adds.add_lat_lon(ds, latmin, latmax, lonmin, lonmax)
+    if "PRESS" not in ds:
+        ds = press(ds, path_to_input=path_to_input)
     ds["SA"] = xr.apply_ufunc(gsw.conversions.SA_from_Sstar,
-                              ds.SALT * ups, ds.PRESS, ds.lonF, ds.latF,
+                              ds.SALT * ds.ups, ds.PRESS, ds.lonF, ds.latF,
                               dask='parallelized',
-                              output_dtypes=[ds.SALT.dtype])
+                              output_dtypes=[ds.SALT.dtype], keep_attrs=True)
     ds["SA"].attrs["standard_name"] = "SA"
     ds["SA"].attrs["long_name"] = "absolute salinity (g/kg)"
     ds["SA"].attrs["units"] = 'g/kg'
@@ -390,7 +394,7 @@ def alpha(ds, path_to_input=None,
         ds = press(ds, path_to_input)
     ds["alpha"] = xr.apply_ufunc(gsw.alpha, ds.SA, ds.THETA, ds.PRESS,
                                  dask='parallelized',
-                                 output_dtypes=[ds.SA.dtype])
+                                 output_dtypes=[ds.SA.dtype], keep_attrs=True)
     ds["alpha"].attrs["standard_name"] = "alpha"
     ds["alpha"].attrs["long_name"] = "thermal expansion coefficient (1/K)"
     ds["alpha"].attrs["units"] = '1/K'
@@ -406,7 +410,7 @@ def beta(ds, path_to_input=None,
     if "PRESS" not in ds.variables:
         ds = press(ds, path_to_input)
     ds["beta"] = xr.apply_ufunc(gsw.beta, ds.SA, ds.THETA, ds.PRESS,
-                                dask='parallelized', output_dtypes=[ds.SA.dtype])
+                                dask='parallelized', output_dtypes=[ds.SA.dtype], keep_attrs=True)
     ds["beta"].attrs["standard_name"] = "beta"
     ds["beta"].attrs["long_name"] = "haline contraction coefficient (kg/g)"
     ds["beta"].attrs["units"] = 'kg/g'
@@ -470,13 +474,21 @@ def w_ekman(ds, grid=None, path_to_input=None,
     return ds
 
 
-def ice_ocean_stress(ds, path_to_input=None,
+def ice_ocean_stress(ds, grid=None, path_to_input=None,
                      thick_name="SIheff", fract_name="SIarea",
                      taux_name="SIOtaux", tauy_name="SIOtauy"):
     """
     """
     if (("rhoconst" not in ds) | ("SEAICE_waterDrag" not in ds)):
         ds = get_const(ds, path_to_input)
+    if grid == None:
+        metrics = {
+            ('X'): ['dxC', 'dxG', 'dxF', 'dxV'], # X distances
+            ('Y'): ['dyC', 'dyG', 'dyF', 'dyU'], # Y distances
+            ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
+            ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
+            }
+        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
     ds[taux_name] = (ds.rhoconst * ds.SEAICE_waterDrag
         * (ds.SIuice.where(grid.interp(ds[thick_name], "X") > 0, other=0)
            - ds.UVEL.isel(Z=0))
