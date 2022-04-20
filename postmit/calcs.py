@@ -425,8 +425,10 @@ def surface_buoy_flux(ds, path_to_input=None,
         | ("rhoconst" not in ds)
         | ("HeatCapacity_Cp" not in ds)):
         ds = get_const(ds, path_to_input)
-    if "SA" not in ds.variables:
-        ds = SA(ds, path_to_input, latmin, latmax, lonmin, lonmax)
+    if "alpha" not in ds.variables:
+        ds = alpha(ds, path_to_input, latmin, latmax, lonmin, lonmax)
+    if "beta" not in ds.variables:
+        ds = beta(ds, path_to_input, latmin, latmax, lonmin, lonmax)
     ds["BFlx_SURF"] = ((ds.gravity / ds.rhoconst)
                         * ((ds.alpha.isel(Z=0) * ds.oceQnet
                             / ds.HeatCapacity_Cp)
