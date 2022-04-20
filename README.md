@@ -21,7 +21,7 @@ pip install -e .
 
 ## Install in existing environment
 
-1. Make sure you have `numpy`, `xarray`, `xgcm`, `gsw` and `MITgcmutils` installed.
+1. Make sure you have `numpy`, `xarray`, `xgcm`, `gsw` and `MITgcmutils` installed. The conversions in `postmit.convert` additionally require `xmitgcm`.
 
 2. Install from the repository using
   ~~~bash
