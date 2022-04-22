@@ -60,10 +60,10 @@ def transports(ds, grid=None):
     Depthv = (ds.drS).cumsum("Z")
     DepthW = grid.interp(ds.Depth, "X", to="left")
     DepthS = grid.interp(ds.Depth, "Y", to="left")
-    ds["UVELbot"] = ds.UVEL.where(Depthu >= DepthW).where(
-                        ds.maskW == 1).mean("Z", skipna=True)
-    ds["VVELbot"] = ds.VVEL.where(Depthu >= DepthS).where(
-                        ds.maskS == 1).mean("Z", skipna=True)
+    ds["UVELbot"] = ds.UVEL.where(Depthu >= DepthW, keep_attrs=True).where(
+        ds.maskW == 1, keep_attrs=True).mean("Z", skipna=True, keep_attrs=True)
+    ds["VVELbot"] = ds.VVEL.where(Depthu >= DepthS, keep_attrs=True).where(
+        ds.maskS == 1, keep_attrs=True).mean("Z", skipna=True, keep_attrs=True)
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
         (ds.UVEL - ds.UVELbot).where(ds.hFacW > 0), "Y"), "Z").mean("XG")
     ds["VTRANSbaro"] = grid.integrate(grid.integrate(
