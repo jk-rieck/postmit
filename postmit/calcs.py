@@ -56,10 +56,14 @@ def transports(ds, grid=None):
         grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
     ds["UTRANS"] = grid.integrate(grid.integrate(ds.UVEL, "Y"), "Z").mean("XG")
     ds["VTRANS"] = grid.integrate(grid.integrate(ds.VVEL, "X"), "Z").mean("YG")
-    Depthu = -(ds.drW).sum("Z").compute()
-    Depthv = -(ds.drS).sum("Z").compute()
-    ds["UVELbot"] = ds.UVEL.sel(Z=Depthu, method="nearest")
-    ds["VVELbot"] = ds.VVEL.sel(Z=Depthv, method="nearest")
+    Depthu = (ds.drW).cumsum("Z")
+    Depthv = (ds.drS).cumsum("Z")
+    DepthW = grid.interp(ds.Depth, "X", to="left")
+    DepthS = grid.interp(ds.Depth, "Y", to="left")
+    ds["UVELbot"] = ds.UVEL.where(Depthu >= DepthW).where(
+                        ds.maskW == 1).mean("Z", skipna=True)
+    ds["VVELbot"] = ds.VVEL.where(Depthu >= DepthS).where(
+                        ds.maskS == 1).mean("Z", skipna=True)
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
         (ds.UVEL - ds.UVELbot).where(ds.hFacW > 0), "Y"), "Z").mean("XG")
     ds["VTRANSbaro"] = grid.integrate(grid.integrate(
