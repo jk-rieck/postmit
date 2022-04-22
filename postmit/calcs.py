@@ -62,7 +62,7 @@ def transports(ds, grid=None):
     DepthS = grid.interp(ds.Depth, "Y", to="left")
     ds["UVELbot"] = ds.UVEL.where(Depthu >= DepthW).where(
                         ds.maskW == 1).mean("Z", skipna=True, keep_attrs=True)
-    ds["VVELbot"] = ds.VVEL.where(Depthu >= DepthS).where(
+    ds["VVELbot"] = ds.VVEL.where(Depthv >= DepthS).where(
                         ds.maskS == 1).mean("Z", skipna=True, keep_attrs=True)
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
         (ds.UVEL - ds.UVELbot).where(ds.hFacW > 0), "Y"), "Z").mean("XG")
