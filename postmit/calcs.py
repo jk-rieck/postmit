@@ -56,8 +56,8 @@ def transports(ds, grid=None):
         grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
     ds["UTRANS"] = grid.integrate(grid.integrate(ds.UVEL, "Y"), "Z").mean("XG")
     ds["VTRANS"] = grid.integrate(grid.integrate(ds.VVEL, "X"), "Z").mean("YG")
-    Depthu = -(ds.drW).sum("Z")
-    Depthv = -(ds.drS).sum("Z")
+    Depthu = -(ds.drW).sum("Z").compute()
+    Depthv = -(ds.drS).sum("Z").compute()
     ds["UVELbot"] = ds.UVEL.sel(Z=Depthu, method="nearest")
     ds["VVELbot"] = ds.VVEL.sel(Z=Depthv, method="nearest")
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
