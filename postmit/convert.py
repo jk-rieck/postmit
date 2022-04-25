@@ -50,7 +50,7 @@ def check_data(path, tout, prefix_in):
 
 
 def convert2nc(path, grid_path, out_path, ds_out, prefixes,
-               start, end, step, dt,
+               starts, ends, steps, dt,
                chunk=True, geom="cartesian", cal="360_day"):
     """
     """
@@ -59,6 +59,9 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
     has_5d, prefixes_5d = check_data(path, '5d', prefixes)
     has_1d, prefixes_1d = check_data(path, '1d', prefixes)
     if has_1y:
+        start = starts['1y']
+        end = ends['1y']
+        step = steps['1y']
         print('    -- loading 1y-output from binary')
         ds_1y = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1y', chunk=True,
@@ -71,6 +74,9 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
         paths = [out_path + ds_out + "_1y_%04d.nc" % y for y in years]
         xr.save_mfdataset(datasets, paths, engine="netcdf4", format="NETCDF4")
     if has_1m:
+        start = starts['1m']
+        end = ends['1m']
+        step = steps['1m']
         print('    -- loading 1m-output from binary')
         ds_1m = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1m', chunk=True,
@@ -83,6 +89,9 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
         paths = [out_path + ds_out + "_1m_%04d.nc" % y for y in years]
         xr.save_mfdataset(datasets, paths, engine="netcdf4", format="NETCDF4")
     if has_5d:
+        start = starts['5d']
+        end = ends['5d']
+        step = steps['5d']
         print('    -- loading 5d-output from binary')
         ds_5d = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='5d', chunk=True,
@@ -95,6 +104,9 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
         paths = [out_path + ds_out + "_5d_%04d.nc" % y for y in years]
         xr.save_mfdataset(datasets, paths, engine="netcdf4", format="NETCDF4")
     if has_1d:
+        start = starts['1d']
+        end = ends['1d']
+        step = steps['1d']
         print('    -- loading 1d-output from binary')
         ds_1d = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1d', chunk=True,
@@ -109,7 +121,7 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
     return str("data saved to ") + str(out_path)
 
 def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
-                 start, end, step, dt,
+                 starts, ends, steps, dt,
                  chunk=True, geom="cartesian", cal="360_day"):
     """
     """
@@ -118,6 +130,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
     has_5d, prefixes_5d = check_data(path, '5d', prefixes)
     has_1d, prefixes_1d = check_data(path, '1d', prefixes)
     if has_1y:
+        start = starts['1y']
+        end = ends['1y']
+        step = steps['1y']
         print('    -- loading 1y-output from binary')
         ds_1y = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1y', chunk=True,
@@ -130,6 +145,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                       mode='w', safe_chunks=True)
         del ds_1y
     if has_1m:
+        start = starts['1m']
+        end = ends['1m']
+        step = steps['1m']
         print('    -- loading 1m-output from binary')
         ds_1m = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1m', chunk=True,
@@ -142,6 +160,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                       mode='w', safe_chunks=True)
         del ds_1m
     if has_5d:
+        start = starts['5d']
+        end = ends['5d']
+        step = steps['5d']
         print('    -- loading 5d-output from binary')
         ds_5d = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='5d', chunk=True,
@@ -154,6 +175,9 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                       mode='w', safe_chunks=True)
         del ds_5d
     if has_1d:
+        start = starts['1d']
+        end = ends['1d']
+        step = steps['1d']
         print('    -- loading 1d-output from binary')
         ds_1d = xr.merge([load_data(path, grid_path, p, start, end, step,
                                     dt, tout='1d', chunk=True,
