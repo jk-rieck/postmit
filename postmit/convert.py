@@ -49,7 +49,7 @@ def check_data(path, tout, prefix_in):
     return has, prefixes
 
 
-def convert2nc(path, grid_path, out_path, ds_out, prefixes,
+def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
                starts, ends, steps, dt,
                chunk=True, geom="cartesian", cal="360_day"):
     """
@@ -68,7 +68,7 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1y])
         print('    -- running checks on 1ydata')
-        ds_1y = checks.apply_all_checks(ds_1y, path)
+        ds_1y = checks.apply_all_checks(ds_1y, in_path)
         print('    -- writing 1y-output to netCDF')
         years, datasets = zip(*ds_1y.groupby("time.year"))
         paths = [out_path + ds_out + "_1y_%04d.nc" % y for y in years]
@@ -83,7 +83,7 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1m])
         print('    -- running checks on 1m-data')
-        ds_1m = checks.apply_all_checks(ds_1m, path)
+        ds_1m = checks.apply_all_checks(ds_1m, in_path)
         print('    -- writing 1m-output to netCDF')
         years, datasets = zip(*ds_1m.groupby("time.year"))
         paths = [out_path + ds_out + "_1m_%04d.nc" % y for y in years]
@@ -98,7 +98,7 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_5d])
         print('    -- running checks on 5d-data')
-        ds_5d = checks.apply_all_checks(ds_5d, path)
+        ds_5d = checks.apply_all_checks(ds_5d, in_path)
         print('    -- writing 5d-output to netCDF')
         years, datasets = zip(*ds_5d.groupby("time.year"))
         paths = [out_path + ds_out + "_5d_%04d.nc" % y for y in years]
@@ -113,14 +113,14 @@ def convert2nc(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1d])
         print('    -- running checks on 1d-data')
-        ds_1d = checks.apply_all_checks(ds_1d, path)
+        ds_1d = checks.apply_all_checks(ds_1d, in_path)
         print('    -- writing 1d-output to netCDF')
         years, datasets = zip(*ds_1d.groupby("time.year"))
         paths = [out_path + ds_out + "_1d_%04d.nc" % y for y in years]
         xr.save_mfdataset(datasets, paths, engine="netcdf4", format="NETCDF4")
     return str("data saved to ") + str(out_path)
 
-def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
+def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
                  starts, ends, steps, dt,
                  chunk=True, geom="cartesian", cal="360_day"):
     """
@@ -139,7 +139,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1y])
         print('    -- running checks on 1y-data')
-        ds_1y = checks.apply_all_checks(ds_1y, path)
+        ds_1y = checks.apply_all_checks(ds_1y, in_path)
         print('    -- writing 1y-output to zarr')
         ds_1y.to_zarr(out_path + ds_out + '.1y.zarr/',
                       mode='w', safe_chunks=True)
@@ -154,7 +154,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1m])
         print('    -- running checks on 1m-data')
-        ds_1m = checks.apply_all_checks(ds_1m, path)
+        ds_1m = checks.apply_all_checks(ds_1m, in_path)
         print('    -- writing 1m-output to zarr')
         ds_1m.to_zarr(out_path + ds_out + '.1m.zarr/',
                       mode='w', safe_chunks=True)
@@ -169,7 +169,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_5d])
         print('    -- running checks on 5d-data')
-        ds_5d = checks.apply_all_checks(ds_5d, path)
+        ds_5d = checks.apply_all_checks(ds_5d, in_path)
         print('    -- writing 5d-output to zarr')
         ds_5d.to_zarr(out_path + ds_out + '.5d.zarr/',
                       mode='w', safe_chunks=True)
@@ -184,7 +184,7 @@ def convert2zarr(path, grid_path, out_path, ds_out, prefixes,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1d])
         print('    -- running checks on 1d-data')
-        ds_1d = checks.apply_all_checks(ds_1d, path)
+        ds_1d = checks.apply_all_checks(ds_1d, in_path)
         print('    -- writing 1d-output to zarr')
         ds_1d.to_zarr(out_path + ds_out + '.1d.zarr/',
                       mode='w', safe_chunks=True)
