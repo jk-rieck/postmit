@@ -11,22 +11,22 @@ import glob
 from . import checks
 
 
-def load_data(path, grid_dir, prefix, start, end, step, dt,
+def load_data(path, grid_dir, prefix, start, end, step, dt, res,
               tout='1m', chunk=True, geom="cartesian", cal="360_day"):
     """
     """
     if tout == '1y':
         ref_date = '0000-07-01 00:00:00'
-        time_chunk = 20
+        time_chunk = int(0.25 * (res ** 2.))
     elif tout == '1m':
         ref_date = '0000-12-15 00:00:00'
-        time_chunk = 24
+        time_chunk = int(0.24 * (res ** 2.))
     elif tout == '5d':
         ref_date = '0000-12-28 12:00:00'
-        time_chunk = 36
+        time_chunk = int(0.36 * (res ** 2.))
     elif tout == '1d':
         ref_date = '0000-12-30 12:00:00'
-        time_chunk = 30
+        time_chunk = int(0.30 * (res ** 2.))
     ds = xmit.open_mdsdataset(
         path, iters=list(np.arange(start, end + 1, step)), delta_t=dt,
         ignore_unknown_vars=True, grid_dir=grid_dir, ref_date=ref_date,
@@ -50,7 +50,7 @@ def check_data(path, tout, prefix_in):
 
 
 def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
-               starts, ends, steps, dt,
+               starts, ends, steps, dt, res,
                chunk=True, geom="cartesian", cal="360_day"):
     """
     """
@@ -64,7 +64,7 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1y']
         print('    -- loading 1y-output from binary')
         ds_1y = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1y', chunk=True,
+                                    dt, res, tout='1y', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1y])
         print('    -- running checks on 1ydata')
@@ -79,7 +79,7 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1m']
         print('    -- loading 1m-output from binary')
         ds_1m = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1m', chunk=True,
+                                    dt, res, tout='1m', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1m])
         print('    -- running checks on 1m-data')
@@ -94,7 +94,7 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['5d']
         print('    -- loading 5d-output from binary')
         ds_5d = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='5d', chunk=True,
+                                    dt, res, tout='5d', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_5d])
         print('    -- running checks on 5d-data')
@@ -109,7 +109,7 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1d']
         print('    -- loading 1d-output from binary')
         ds_1d = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1d', chunk=True,
+                                    dt, res, tout='1d', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1d])
         print('    -- running checks on 1d-data')
@@ -121,7 +121,7 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
     return str("data saved to ") + str(out_path)
 
 def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
-                 starts, ends, steps, dt,
+                 starts, ends, steps, dt, res,
                  chunk=True, geom="cartesian", cal="360_day"):
     """
     """
@@ -135,7 +135,7 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1y']
         print('    -- loading 1y-output from binary')
         ds_1y = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1y', chunk=True,
+                                    dt, res, tout='1y', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1y])
         print('    -- running checks on 1y-data')
@@ -150,7 +150,7 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1m']
         print('    -- loading 1m-output from binary')
         ds_1m = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1m', chunk=True,
+                                    dt, res, tout='1m', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1m])
         print('    -- running checks on 1m-data')
@@ -165,7 +165,7 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['5d']
         print('    -- loading 5d-output from binary')
         ds_5d = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='5d', chunk=True,
+                                    dt, res, tout='5d', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_5d])
         print('    -- running checks on 5d-data')
@@ -180,7 +180,7 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         step = steps['1d']
         print('    -- loading 1d-output from binary')
         ds_1d = xr.merge([load_data(path, grid_path, p, start, end, step,
-                                    dt, tout='1d', chunk=True,
+                                    dt, res, tout='1d', chunk=True,
                                     geom="cartesian", cal="360_day")
                           for p in prefixes_1d])
         print('    -- running checks on 1d-data')
