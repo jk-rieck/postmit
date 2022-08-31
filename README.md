@@ -1,6 +1,6 @@
 # postmit
 
-Python package to do some post-processing on model ouput from the [MITgcm](https://mitgcm.readthedocs.io/en/latest/) to calculate variables not included in the model output etc.   
+Python package to do some post-processing on model ouput from the [MITgcm](https://mitgcm.readthedocs.io/en/latest/) to calculate variables not included in the model output etc. The package is meant to be used with the output from simulations whose grids are periodic in x-direction but not in y-direction, i.e. reentrant channel configurations.   
 
 The package works based on output contained in [`xarray`](https://docs.xarray.dev/en/stable/) datasets, i.e. loaded with [`xmitgcm`](https://xmitgcm.readthedocs.io/en/latest/) or similarly.   
 
