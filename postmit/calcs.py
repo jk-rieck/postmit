@@ -21,8 +21,9 @@ def vort(ds, grid=None):
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
-    ds["VORT"] = grid.derivative(ds.VVEL, "X") - grid.derivative(ds.UVEL, "Y")
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
+    ds["VORT"] = (grid.derivative(ds.VVEL, "X")
+                  - grid.derivative(ds.UVEL, "Y", boundary="extend"))
     ds["VORT"].attrs["standard_name"] = "VORT"
     ds["VORT"].attrs["long_name"] = "vertical component of vorticity (1/s)"
     ds["VORT"].attrs["units"] = "1/s"
@@ -53,13 +54,13 @@ def transports(ds, grid=None):
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
     ds["UTRANS"] = grid.integrate(grid.integrate(ds.UVEL, "Y"), "Z").mean("XG")
     ds["VTRANS"] = grid.integrate(grid.integrate(ds.VVEL, "X"), "Z").mean("YG")
     Depthu = (ds.drW).cumsum("Z")
     Depthv = (ds.drS).cumsum("Z")
     DepthW = grid.interp(ds.Depth, "X", to="left")
-    DepthS = grid.interp(ds.Depth, "Y", to="left")
+    DepthS = grid.interp(ds.Depth, "Y", to="left", boundary="extrapolate")
     ds["UVELbot"] = ds.UVEL.where(Depthu >= DepthW).where(
                         ds.maskW == 1).mean("Z", skipna=True, keep_attrs=True)
     ds["VVELbot"] = ds.VVEL.where(Depthv >= DepthS).where(
@@ -135,7 +136,7 @@ def total_MOC(ds, grid=None):
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
     ds["MOC"] = grid.integrate((ds.VVEL * ds.drS).cumsum(dim="Z"), "X")
     ds["MOC"].attrs["standard_name"] = "meridional_overturning"
     ds["MOC"].attrs["long_name"] = "meridional overturning (m^3/s)"
@@ -154,7 +155,7 @@ def residual_MOC(ds, grid=None, path_to_input=None):
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(dw, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(dw, periodic=["X"], metrics=metrics)
     if "layer_center" not in ds.dims:
         dw = checks.check_layers(dw, path_to_input)
     dw["MOC_res"] = grid.integrate(
@@ -458,7 +459,7 @@ def w_ekman(ds, grid=None, path_to_input=None,
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
     if "VORT" not in ds.variables:
         ds = vort(ds, grid)
     if "XG" in ds[taux_name].dims:
@@ -468,11 +469,11 @@ def w_ekman(ds, grid=None, path_to_input=None,
     if "YG" in ds[tauy_name].dims:
         tauy = ds[tauy_name]
     else:
-        tauy = grid.interp(ds[tauy_name], "Y")
+        tauy = grid.interp(ds[tauy_name], "Y", boundary="extrapolate")
     ds[out_name] = ((1 / ds.rhoconst)
                     * grid.derivative(tauy, "X")
                        / ds.fU + ds["VORT"].isel(Z=0)
-                       - grid.derivative(taux, "Y")
+                       - grid.derivative(taux, "Y", boundary="extend")
                        / ds.fU + ds["VORT"].isel(Z=0))
     ds[out_name].attrs["standard_name"] = out_name
     ds[out_name].attrs["long_name"] = "Ekman vertical velocity (m/s)"
@@ -494,7 +495,7 @@ def ice_ocean_stress(ds, grid=None, path_to_input=None,
             ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
             ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
             }
-        grid = xgcm.Grid(ds, periodic=["X", "Y"], metrics=metrics)
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
     ds[taux_name] = (ds.rhoconst * ds.SEAICE_waterDrag
         * (ds.SIuice.where(grid.interp(ds[thick_name], "X") > 0, other=0)
            - ds.UVEL.isel(Z=0))
@@ -502,11 +503,13 @@ def ice_ocean_stress(ds, grid=None, path_to_input=None,
               - ds.UVEL.isel(Z=0))
         * grid.interp(ds[fract_name], "X"))
     ds[tauy_name] = (ds.rhoconst * ds.SEAICE_waterDrag
-        * (ds.SIvice.where(grid.interp(ds[thick_name], "Y") > 0, other=0)
+        * (ds.SIvice.where(grid.interp(ds[thick_name], "Y",
+                                       boundary="extrapolate") > 0, other=0)
            - ds.VVEL.isel(Z=0))
-        * abs(ds.SIvice.where(grid.interp(ds[thick_name], "Y") > 0, other=0)
+        * abs(ds.SIvice.where(grid.interp(ds[thick_name], "Y",
+                                          boundary="extrapolate") > 0, other=0)
               - ds.VVEL.isel(Z=0))
-        * grid.interp(ds[fract_name], "Y"))
+        * grid.interp(ds[fract_name], "Y", boundary="extrapolate"))
     ds[taux_name].attrs["standard_name"] = taux_name
     ds[taux_name].attrs["long_name"] = "zonal ice-ocean stress (N/m^2)"
     ds[taux_name].attrs["units"] = 'N/m^2'
