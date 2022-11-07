@@ -122,7 +122,8 @@ def convert2nc(path, grid_path, in_path, out_path, ds_out, prefixes,
 
 def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
                  starts, ends, steps, dt, res,
-                 chunk=True, geom="cartesian", cal="360_day"):
+                 chunk=True, geom="cartesian", cal="360_day",
+                 append=False):
     """
     """
     has_1y, prefixes_1y = check_data(path, '1y', prefixes)
@@ -141,8 +142,13 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1y-data')
         ds_1y = checks.apply_all_checks(ds_1y, in_path)
         print('    -- writing 1y-output to zarr')
-        ds_1y.to_zarr(out_path + ds_out + '.1y.zarr/',
-                      mode='w', safe_chunks=True)
+        if append:
+            ds_1y.to_zarr(out_path + ds_out + '.1y.zarr/',
+                          mode='w', safe_chunks=True,
+                          append_dim='time')
+        else:
+            ds_1y.to_zarr(out_path + ds_out + '.1y.zarr/',
+                          mode='w', safe_chunks=True)
         del ds_1y
     if has_1m:
         start = starts['1m']
@@ -156,8 +162,13 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1m-data')
         ds_1m = checks.apply_all_checks(ds_1m, in_path)
         print('    -- writing 1m-output to zarr')
-        ds_1m.to_zarr(out_path + ds_out + '.1m.zarr/',
-                      mode='w', safe_chunks=True)
+        if append:
+            ds_1m.to_zarr(out_path + ds_out + '.1m.zarr/',
+                          mode='w', safe_chunks=True,
+                          append_dim='time')
+        else:
+            ds_1m.to_zarr(out_path + ds_out + '.1m.zarr/',
+                          mode='w', safe_chunks=True)
         del ds_1m
     if has_5d:
         start = starts['5d']
@@ -171,8 +182,13 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         print('    -- running checks on 5d-data')
         ds_5d = checks.apply_all_checks(ds_5d, in_path)
         print('    -- writing 5d-output to zarr')
-        ds_5d.to_zarr(out_path + ds_out + '.5d.zarr/',
-                      mode='w', safe_chunks=True)
+        if append:
+            ds_5d.to_zarr(out_path + ds_out + '.5d.zarr/',
+                          mode='w', safe_chunks=True,
+                          append_dim='time')
+        else:
+            ds_5d.to_zarr(out_path + ds_out + '.5d.zarr/',
+                          mode='w', safe_chunks=True)
         del ds_5d
     if has_1d:
         start = starts['1d']
@@ -186,7 +202,12 @@ def convert2zarr(path, grid_path, in_path, out_path, ds_out, prefixes,
         print('    -- running checks on 1d-data')
         ds_1d = checks.apply_all_checks(ds_1d, in_path)
         print('    -- writing 1d-output to zarr')
-        ds_1d.to_zarr(out_path + ds_out + '.1d.zarr/',
-                      mode='w', safe_chunks=True)
+        if append:
+            ds_1d.to_zarr(out_path + ds_out + '.1d.zarr/',
+                          mode='w', safe_chunks=True,
+                          append_dim='time')
+        else:
+            ds_1d.to_zarr(out_path + ds_out + '.1d.zarr/',
+                          mode='w', safe_chunks=True)
         del ds_1d
     return str("data saved to ") + str(out_path)
