@@ -25,7 +25,7 @@ def vort(ds, grid=None):
     ds["VORT"] = (grid.derivative(ds.VVEL, "X")
                   - grid.derivative(ds.UVEL, "Y", boundary="extend"))
     ds["VORT"].attrs["standard_name"] = "VORT"
-    ds["VORT"].attrs["long_name"] = "vertical component of vorticity (1/s)"
+    ds["VORT"].attrs["long_name"] = "vertical component of vorticity dv/dx - du/dy (1/s)"
     ds["VORT"].attrs["units"] = "1/s"
     return ds
 
@@ -42,6 +42,53 @@ def rossby_num(ds, grid=None, path_to_input=None):
     ds["RosNum"].attrs["long_name"] = "Rossby number abs(VORT/f)"
     ds["RosNum"].attrs["units"] = ""
     return ds
+
+def div(ds, grid=None):
+    """
+    """
+    if grid == None:
+        metrics = {
+            ('X'): ['dxC', 'dxG', 'dxF', 'dxV'], # X distances
+            ('Y'): ['dyC', 'dyG', 'dyF', 'dyU'], # Y distances
+            ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
+            ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
+            }
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
+    ds["DIV"] = (grid.derivative(ds.UVEL, "X")
+                 + grid.derivative(ds.VVEL, "Y", boundary="extend"))
+    ds["DIV"].attrs["standard_name"] = "DIV"
+    ds["DIV"].attrs["long_name"] = "divergence du/dx + dv/dy (1/s)"
+    ds["DIV"].attrs["units"] = "1/s"
+    return ds
+
+def strain(ds, grid=None):
+    """
+    """
+    if grid == None:
+        metrics = {
+            ('X'): ['dxC', 'dxG', 'dxF', 'dxV'], # X distances
+            ('Y'): ['dyC', 'dyG', 'dyF', 'dyU'], # Y distances
+            ('Z'): ['drF', 'drW', 'drS', 'drC'], # Z distances
+            ('X', 'Y'): ['rAw', 'rAs', 'rA', 'rAz'] # Areas in x-y plane
+            }
+        grid = xgcm.Grid(ds, periodic=["X"], metrics=metrics)
+    ds["normalSTRAIN"] = (grid.derivative(ds.UVEL, "X")
+                          - grid.derivative(ds.VVEL, "Y", boundary="extend"))
+    ds["normalSTRAIN"].attrs["standard_name"] = "normalSTRAIN"
+    ds["normalSTRAIN"].attrs["long_name"] = "normal strain du/dx - dv/dy (1/s)"
+    ds["normalSTRAIN"].attrs["units"] = "1/s"
+    ds["shearSTRAIN"] = (grid.derivative(ds.VVEL, "X")
+                          + grid.derivative(ds.UVEL, "Y", boundary="extend"))
+    ds["shearSTRAIN"].attrs["standard_name"] = "shearSTRAIN"
+    ds["shearSTRAIN"].attrs["long_name"] = "shear strain dv/dx + du/dy (1/s)"
+    ds["shearSTRAIN"].attrs["units"] = "1/s"
+    ds["STRAIN"] = ((grid.interp(ds.normalSTRAIN, ("X", "Y"), boundary="extend")**2)
+                    + ds.shearSTRAIN**2)**0.5
+    ds["STRAIN"].attrs["standard_name"] = "STRAIN"
+    ds["STRAIN"].attrs["long_name"] = "strain magnitude sqrt(normalSTRAIN^2 + shearSTRAIN^2) (1/s)"
+    ds["STRAIN"].attrs["units"] = "1/s"
+    return ds
+
 
 
 def transports(ds, grid=None):
@@ -66,9 +113,11 @@ def transports(ds, grid=None):
     ds["VVELbot"] = ds.VVEL.where(Depthv >= DepthS).where(
                         ds.maskS == 1).mean("Z", skipna=True, keep_attrs=True)
     ds["UTRANSbaro"] = grid.integrate(grid.integrate(
-        (ds.UVEL - ds.UVELbot).where(ds.hFacW > 0), "Y"), "Z").mean("XG")
+        (ds.UVEL - ds.UVEL.mean("Z", keepdims=True)).where(ds.hFacW > 0), "Y"
+						    ), "Z").mean("XG")
     ds["VTRANSbaro"] = grid.integrate(grid.integrate(
-        (ds.VVEL - ds.VVELbot).where(ds.hFacS > 0), "X"), "Z").mean("YG")
+        (ds.VVEL - ds.VVEL.mean("Z", keepdims=True)).where(ds.hFacS > 0), "X"
+						    ), "Z").mean("YG")
     ds["UTRANS"].attrs["standard_name"] = "UTRANS"
     ds["UTRANS"].attrs["long_name"] =\
         "mean zonal transport integrated over Y and Z (m^3/s)"
